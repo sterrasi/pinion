@@ -18,15 +18,15 @@ func TestErrorCodeMappings(t *testing.T) {
 	assert.Equal(t, IllegalArgumentError, NewIllegalArgumentError("error").Code())
 	assert.Equal(t, IllegalArgumentError, BuildIllegalArgumentError().Msg("error").Code())
 
-	assert.Equal(t, ValidationErrorCode, NewValidationErrorCode("error").Code())
-	assert.Equal(t, ValidationErrorCode, BuildValidationErrorCode().Msg("error").Code())
+	assert.Equal(t, ValidationErrorCode, NewValidationError("error").Code())
+	assert.Equal(t, ValidationErrorCode, BuildValidationError().Msg("error").Code())
 
-	assert.Equal(t, IllegalStateErrorCode, NewIllegalStateErrorCode("error").Code())
-	assert.Equal(t, IllegalStateErrorCode, BuildIllegalStateErrorCode().Msg("error").Code())
+	assert.Equal(t, IllegalStateErrorCode, NewIllegalStateError("error").Code())
+	assert.Equal(t, IllegalStateErrorCode, BuildIllegalStateError().Msg("error").Code())
 
-	assert.Equal(t, NotFoundErrorCode, NewNotFoundErrorCode("error").Code())
-	assert.Equal(t, NotFoundErrorCode, BuildNotFoundErrorCode().Msg("error").Code())
+	assert.Equal(t, NotFoundErrorCode, NewNotFoundError("error").Code())
+	assert.Equal(t, NotFoundErrorCode, BuildNotFoundError().Msg("error").Code())
 
-	assert.Equal(t, AlreadyExistsErrorCode, NewAlreadyExistsErrorCode("error").Code())
-	assert.Equal(t, AlreadyExistsErrorCode, BuildAlreadyExistsErrorCode().Msg("error").Code())
+	assert.Equal(t, AlreadyExistsErrorCode, NewAlreadyExistsError("error").Code())
+	assert.Equal(t, AlreadyExistsErrorCode, BuildAlreadyExistsError().Msg("error").Code())
 }

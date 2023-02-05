@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestAppErrorMessageFormat tests that the Error() if a fully hydrated app.Error is well formed
+// TestAppErrorMessageFormat tests that the Error() if a fully hydrated app.Error is well-formed
 func TestAppErrorMessageFormat(t *testing.T) {
 
 	err := BuildInternalError().Context("some context").

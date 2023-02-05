@@ -50,41 +50,41 @@ func NewIllegalArgumentError(format string, args ...any) Error {
 // is invalid
 const ValidationErrorCode ErrorCode = 5
 
-func BuildValidationErrorCode() *ErrorBuilder {
+func BuildValidationError() *ErrorBuilder {
 	return NewErrorBuilder(ValidationErrorCode, "validation")
 }
-func NewValidationErrorCode(format string, args ...any) Error {
-	return BuildValidationErrorCode().Msgf(format, args...)
+func NewValidationError(format string, args ...any) Error {
+	return BuildValidationError().Msgf(format, args...)
 }
 
 // IllegalStateErrorCode relates to a client level error that signifies the operation asked of the server
 // cannot be performed because it is not in the proper state
 const IllegalStateErrorCode ErrorCode = 6
 
-func BuildIllegalStateErrorCode() *ErrorBuilder {
+func BuildIllegalStateError() *ErrorBuilder {
 	return NewErrorBuilder(IllegalStateErrorCode, "illegal-state")
 }
-func NewIllegalStateErrorCode(format string, args ...any) Error {
-	return BuildIllegalStateErrorCode().Msgf(format, args...)
+func NewIllegalStateError(format string, args ...any) Error {
+	return BuildIllegalStateError().Msgf(format, args...)
 }
 
 // NotFoundErrorCode relates to a client level error where an entity is referenced by the client that does not exist
 const NotFoundErrorCode ErrorCode = 7
 
-func BuildNotFoundErrorCode() *ErrorBuilder {
+func BuildNotFoundError() *ErrorBuilder {
 	return NewErrorBuilder(NotFoundErrorCode, "not-found")
 }
-func NewNotFoundErrorCode(format string, args ...any) Error {
-	return BuildNotFoundErrorCode().Msgf(format, args...)
+func NewNotFoundError(format string, args ...any) Error {
+	return BuildNotFoundError().Msgf(format, args...)
 }
 
 // AlreadyExistsErrorCode relates to a client level error where the result of an operation is to produce a new entity
 // but the entity already exists in the system
 const AlreadyExistsErrorCode ErrorCode = 8
 
-func BuildAlreadyExistsErrorCode() *ErrorBuilder {
+func BuildAlreadyExistsError() *ErrorBuilder {
 	return NewErrorBuilder(AlreadyExistsErrorCode, "already-exists")
 }
-func NewAlreadyExistsErrorCode(format string, args ...any) Error {
-	return BuildAlreadyExistsErrorCode().Msgf(format, args...)
+func NewAlreadyExistsError(format string, args ...any) Error {
+	return BuildAlreadyExistsError().Msgf(format, args...)
 }

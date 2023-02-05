@@ -2,10 +2,10 @@ package http
 
 import (
 	"github.com/sterrasi/pinion/app"
-	gohttp "net/http"
+	nethttp "net/http"
 )
 
-// GetHttpStatusCode returns the http status code for the given app.Error. If the error code is unknown
+// GetHttpStatusCode returns the http status code for the given apperr.Error. If the error code is unknown
 // then false is returned
 func GetHttpStatusCode(err app.Error) (bool, int) {
 
@@ -15,21 +15,21 @@ func GetHttpStatusCode(err app.Error) (bool, int) {
 	case app.IllegalArgumentError:
 		fallthrough
 	case app.SystemConfigurationErrorCode:
-		return true, gohttp.StatusInternalServerError
+		return true, nethttp.StatusInternalServerError
 
 	case app.ServiceUnavailableErrorCode:
-		return true, gohttp.StatusServiceUnavailable
+		return true, nethttp.StatusServiceUnavailable
 
 	case app.ValidationErrorCode:
-		return true, gohttp.StatusBadRequest
+		return true, nethttp.StatusBadRequest
 
 	case app.AlreadyExistsErrorCode:
 		fallthrough
 	case app.IllegalStateErrorCode:
-		return true, gohttp.StatusConflict
+		return true, nethttp.StatusConflict
 
 	case app.NotFoundErrorCode:
-		return true, gohttp.StatusNotFound
+		return true, nethttp.StatusNotFound
 
 	default:
 		return false, 0

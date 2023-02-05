@@ -11,7 +11,9 @@ type Error interface {
 	CodeValue() string
 	Cause() error
 	GetContext() string
-	SetContext(ctx string)
+	SetContext(string)
+	GetMetadataValue(string) string
+	GetMetadata() map[string]string
 }
 
 // ErrorImpl implements an Error
@@ -67,12 +69,25 @@ func (e *ErrorImpl) Cause() error {
 	return e.cause
 }
 
-// GetContext returns the error's optional context
+// GetContext returns this error's optional context
 func (e *ErrorImpl) GetContext() string {
 	return e.context
 }
 
-// SetContext identifies the context of the error
+// SetContext identifies the context of this error
 func (e *ErrorImpl) SetContext(ctx string) {
 	e.context = ctx
+}
+
+// GetMetadata returns this error's optional metadata. It can be nil
+func (e *ErrorImpl) GetMetadata() map[string]string {
+	return e.metadata
+}
+
+// GetMetadataValue returns a value from this error's metadata.
+func (e *ErrorImpl) GetMetadataValue(key string) string {
+	if e.metadata != nil {
+		return e.metadata[key]
+	}
+	return ""
 }
