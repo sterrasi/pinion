@@ -13,7 +13,7 @@ func TestNewConfigurationWithBadPath(t *testing.T) {
 	path := "./doesNotExist.ini"
 	_, err := NewConfiguration(path)
 	if err == nil {
-		t.Fatalf("expecting NewConfiguration to fail on bad config path")
+		t.Fatalf("expecting NewConfiguration to fail on bad config file path")
 	}
 
 	assert.Equal(t, err.Code(), SystemConfigurationErrorCode)
@@ -24,7 +24,7 @@ func TestNewConfigurationWithBadPath(t *testing.T) {
 func TestBuilderMappingsForField(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	f := registerIntegerField(cfg)
+	f := registerIntegerField(createRegistry(cfg))
 
 	assert.Equal(t, f.ArgName, "p")
 	assert.Equal(t, f.EnvVar, "PORT")
@@ -35,11 +35,11 @@ func TestBuilderMappingsForField(t *testing.T) {
 	assert.Equal(t, f.DefaultValue, 3000)
 }
 
-// Validate the ValueMetadata and accessor method for an integer field pulled from a config file
+// Validate the ValueMetadata and accessor method for an integer field pulled from a registry file
 func TestParseIntFieldFromConfig(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	port := registerIntegerField(cfg)
+	port := registerIntegerField(createRegistry(cfg))
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -47,11 +47,11 @@ func TestParseIntFieldFromConfig(t *testing.T) {
 	assertMetadata(t, cfg, port, 4000, File)
 }
 
-// Validate the ValueMetadata and accessor method for a uint field pulled from a config file
+// Validate the ValueMetadata and accessor method for a uint field pulled from a registry file
 func TestParseUintFieldFromConfig(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	poolSize := registerUintField(cfg)
+	poolSize := registerUintField(createRegistry(cfg))
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -59,11 +59,11 @@ func TestParseUintFieldFromConfig(t *testing.T) {
 	assertMetadata(t, cfg, poolSize, uint(20), File)
 }
 
-// Validate the ValueMetadata and accessor method for a float field pulled from a config file
+// Validate the ValueMetadata and accessor method for a float field pulled from a registry file
 func TestParseFloatFieldFromConfig(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	mrFloaty := registerFloatField(cfg)
+	mrFloaty := registerFloatField(createRegistry(cfg))
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -71,11 +71,11 @@ func TestParseFloatFieldFromConfig(t *testing.T) {
 	assertMetadata(t, cfg, mrFloaty, float64(3.54321), File)
 }
 
-// Validate the ValueMetadata and accessor method for a string field pulled from a config file
+// Validate the ValueMetadata and accessor method for a string field pulled from a registry file
 func TestParseStringFieldFromConfig(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	host := registerStringField(cfg)
+	host := registerStringField(createRegistry(cfg))
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -83,11 +83,11 @@ func TestParseStringFieldFromConfig(t *testing.T) {
 	assertMetadata(t, cfg, host, "localhost", File)
 }
 
-// Validate the ValueMetadata and accessor method for a bool field pulled from a config file
+// Validate the ValueMetadata and accessor method for a bool field pulled from a registry file
 func TestParseBoolFieldFromConfig(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	verbosity := registerBoolField(cfg)
+	verbosity := registerBoolField(createRegistry(cfg))
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -98,7 +98,7 @@ func TestParseBoolFieldFromConfig(t *testing.T) {
 // Make sure the Default value gets picked up when the field is not defined anywhere else
 func TestIntFieldDefaultValue(t *testing.T) {
 	cfg := createConfiguration(t)
-	unknown := registerUnknownIntegerFieldWithDefault(cfg, 3)
+	unknown := registerUnknownIntegerFieldWithDefault(createRegistry(cfg), 3)
 	if err := cfg.LoadFields([]string{}); err != nil {
 		t.Fatalf("Error loading fields: %s", err.Error())
 	}
@@ -109,7 +109,7 @@ func TestIntFieldDefaultValue(t *testing.T) {
 // Make sure the LoadFields fails when a RequiredField cannot be found
 func TestRequiredIntFieldWithNoValue(t *testing.T) {
 	cfg := createConfiguration(t)
-	numCats := registerRequiredUnknownIntegerField(cfg)
+	numCats := registerRequiredUnknownIntegerField(createRegistry(cfg))
 	err := cfg.LoadFields([]string{})
 	if err == nil {
 		t.Fatalf("expecting LoadFields to fail on 'cannot find required field'")
@@ -122,7 +122,7 @@ func TestRequiredIntFieldWithNoValue(t *testing.T) {
 func TestEnvironmentVariableOverride(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	port := registerIntegerField(cfg)
+	port := registerIntegerField(createRegistry(cfg))
 
 	// set the PORT env variable
 	orig := os.Getenv("PORT")
@@ -144,7 +144,7 @@ func TestEnvironmentVariableOverride(t *testing.T) {
 func TestCliArgOverride(t *testing.T) {
 
 	cfg := createConfiguration(t)
-	port := registerIntegerField(cfg)
+	port := registerIntegerField(createRegistry(cfg))
 
 	// use cli arg as well to demonstrate that the env var takes higher precedence
 	if err := cfg.LoadFields([]string{"appName", "-p", "6000"}); err != nil {
@@ -221,8 +221,9 @@ func createConfiguration(t *testing.T) *Configuration {
 }
 
 // Registers an integer field with default value that does not exist in the configuration
-func registerUnknownIntegerFieldWithDefault(cfg *Configuration, defaultValue int) *Field {
-	f := cfg.BuildIntField("numCats").
+func registerUnknownIntegerFieldWithDefault(reg *FieldRegistry, defaultValue int) *Field {
+
+	f := reg.CreateIntField("numCats").
 		ArgName("cats").
 		EnvVar("NUM_CATS").
 		ConfigName("Animals", "NumCats").
@@ -234,8 +235,8 @@ func registerUnknownIntegerFieldWithDefault(cfg *Configuration, defaultValue int
 }
 
 // Registers a required integer field with no default value that does not exist in the configuration
-func registerRequiredUnknownIntegerField(cfg *Configuration) *Field {
-	f := cfg.BuildIntField("numCats").
+func registerRequiredUnknownIntegerField(reg *FieldRegistry) *Field {
+	f := reg.CreateIntField("numCats").
 		ArgName("cats").
 		EnvVar("NUM_CATS").
 		ConfigName("Animals", "NumCats").
@@ -247,8 +248,8 @@ func registerRequiredUnknownIntegerField(cfg *Configuration) *Field {
 }
 
 // Registers and returns the 'port' field
-func registerIntegerField(cfg *Configuration) *Field {
-	f := cfg.BuildIntField("port").
+func registerIntegerField(reg *FieldRegistry) *Field {
+	f := reg.CreateIntField("port").
 		ArgName("p").
 		EnvVar("PORT").
 		ConfigName("Server", "Port").
@@ -260,8 +261,8 @@ func registerIntegerField(cfg *Configuration) *Field {
 }
 
 // Registers and returns the 'poolSize' field
-func registerUintField(cfg *Configuration) *Field {
-	f := cfg.BuildUintField("poolSize").
+func registerUintField(reg *FieldRegistry) *Field {
+	f := reg.CreateUintField("poolSize").
 		ArgName("ps").
 		EnvVar("POOL_SIZE").
 		ConfigName("Database", "PoolSize").
@@ -273,8 +274,8 @@ func registerUintField(cfg *Configuration) *Field {
 }
 
 // Registers and returns the 'floaty' field
-func registerFloatField(cfg *Configuration) *Field {
-	f := cfg.BuildFloatField("floaty").
+func registerFloatField(reg *FieldRegistry) *Field {
+	f := reg.CreateFloatField("floaty").
 		ArgName("f").
 		EnvVar("FLOATY").
 		ConfigName("Float", "MrFloaty").
@@ -286,8 +287,8 @@ func registerFloatField(cfg *Configuration) *Field {
 }
 
 // Registers and returns the 'host' field
-func registerStringField(cfg *Configuration) *Field {
-	f := cfg.BuildStringField("host").
+func registerStringField(reg *FieldRegistry) *Field {
+	f := reg.CreateStringField("host").
 		ArgName("h").
 		EnvVar("HOST").
 		ConfigName("Server", "Host").
@@ -298,8 +299,8 @@ func registerStringField(cfg *Configuration) *Field {
 }
 
 // Registers and returns the 'useHttps' field
-func registerBoolField(cfg *Configuration) *Field {
-	f := cfg.BuildBooleanField("verbose").
+func registerBoolField(reg *FieldRegistry) *Field {
+	f := reg.CreateBooleanField("verbose").
 		ArgName("v").
 		EnvVar("VERBOSE").
 		ConfigName("Server", "Verbose").
@@ -307,4 +308,10 @@ func registerBoolField(cfg *Configuration) *Field {
 		Default(false).
 		Register()
 	return f
+}
+
+func createRegistry(c *Configuration) *FieldRegistry {
+	return &FieldRegistry{
+		fields: c.fields,
+	}
 }

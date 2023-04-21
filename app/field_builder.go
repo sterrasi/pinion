@@ -16,7 +16,7 @@ type FieldBuilder[T FieldType] struct {
 	defaultValue      T
 	required          bool
 	valueType         ValueType
-	config            *Configuration
+	registry          *FieldRegistry
 }
 
 func (b *FieldBuilder[T]) Descriptions(shortDesc string, longDesc string) *FieldBuilder[T] {
@@ -64,9 +64,9 @@ func (b *FieldBuilder[T]) Register() *Field {
 		Required:          b.required,
 		Type:              b.valueType,
 	}
-	if b.config.fields == nil {
-		b.config.fields = make(map[string]*Field)
+	if b.registry.fields == nil {
+		b.registry.fields = make(map[string]*Field)
 	}
-	b.config.fields[f.Name] = f
+	b.registry.fields[f.Name] = f
 	return f
 }

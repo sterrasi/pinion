@@ -6,7 +6,11 @@ import (
 )
 
 type Scanner interface {
-	Scan(dest ...any) error
+	// Scan reads the values from the current row into dest values positionally.
+	// dest can include pointers to core types, values implementing the Scanner
+	// interface, and nil. nil will skip the value entirely. It is an error to
+	// call Scan without first calling Next() and checking that it returned true.
+	Scan(dest ...any) app.Error
 }
 
 type InsertStatement struct {
@@ -14,7 +18,7 @@ type InsertStatement struct {
 	Name string
 }
 
-type MapperFn[M any] func(scanner Scanner, model *M) error
+type MapperFn[M any] func(scanner Scanner, model *M) app.Error
 
 type QueryStatement[M any] struct {
 	SQL    string
@@ -22,62 +26,50 @@ type QueryStatement[M any] struct {
 	Mapper MapperFn[M]
 }
 
-type StatusText struct {
-	status string
+type ExecResult struct {
+	Id           string
+	RowsAffected uint
 }
 
 type RowIterator interface {
+	Scanner
 
 	// Close closes the rows, making the connection ready for use again. It is safe
 	// to call Close after rows is already closed.
 	Close()
 
 	// Err returns any error that occurred while reading.
-	Err() error
+	Err() app.Error
 
 	// Next prepares the next row for reading. It returns true if there is another
 	// row and false if no more rows are available. It automatically closes rows
 	// when all rows are read.
 	Next() bool
 
-	// Scan reads the values from the current row into dest values positionally.
-	// dest can include pointers to core types, values implementing the Scanner
-	// interface, and nil. nil will skip the value entirely. It is an error to
-	// call Scan without first calling Next() and checking that it returned true.
-	Scan(dest ...any) error
-
 	// Values returns the decoded row values. As with Scan(), it is an error to
 	// call Values without first calling Next() and checking that it returned
 	// true.
-	Values() ([]any, error)
-
-	// RawValues returns the unparsed bytes of the row values. The returned data is only valid until the next Next
-	// call or the Rows is closed.
-	RawValues() [][]byte
+	Values() ([]any, app.Error)
 }
 
 type Row interface {
-	// Scan works the same as Rows. with the following exceptions. If no
-	// rows were found it returns ErrNoRows. If multiple rows are returned it
-	// ignores all but the first.
-	Scan(dest ...any) error
+	Scanner
 }
 
-type SQLHandle interface {
-	Exec(ctx context.Context, sql string, args ...any) (StatusText, error)
-	Query(ctx context.Context, sql string, args ...any) (RowIterator, error)
+type SqlHandle interface {
+	Exec(ctx context.Context, sql string, args ...any) (*ExecResult, app.Error)
+	Query(ctx context.Context, sql string, args ...any) (RowIterator, app.Error)
 	QueryRow(ctx context.Context, sql string, args ...any) Row // no error?
 }
 
-type DbHandle interface {
-	SQLHandle
+type DatabaseHandle interface {
+	SqlHandle
 	ExecFile(filePath string) app.Error
 	Insert(ctx context.Context, stmt *InsertStatement, args ...any) app.Error
 }
 
-type TransactionFn func(handle DbHandle) app.Error
+type TransactionFn func(handle DatabaseHandle) app.Error
 type DB interface {
-	DbHandle
 	Close()
 	ReadTransaction(ctx context.Context, tnFn TransactionFn) app.Error
 	WriteTransaction(ctx context.Context, tnFn TransactionFn) app.Error
@@ -85,22 +77,22 @@ type DB interface {
 	Transaction(ctx context.Context, txOptions *TransactionOptions, tnFn TransactionFn) app.Error
 }
 
-// Transaction options for DB.WriteTransaction
-var txWriteOptions = &TransactionOptions{
+// TxWriteOptions Transaction options for DB.WriteTransaction
+var TxWriteOptions = &TransactionOptions{
 	AccessMode:     ReadWrite,
 	DeferrableMode: NotDeferrable,  // check constraints upfront
 	IsoLevel:       RepeatableRead, // no phantom reads allowed in postgres
 }
 
-// Transaction options for DB.WriteSerializableTransaction
-var txSerializableWriteOptions = &TransactionOptions{
+// TxSerializableWriteOptions Transaction options for DB.WriteSerializableTransaction
+var TxSerializableWriteOptions = &TransactionOptions{
 	AccessMode:     ReadWrite,
 	DeferrableMode: NotDeferrable, // check constraints upfront
 	IsoLevel:       Serializable,
 }
 
-// Transaction options for DB.WriteSerializableTransaction
-var txReadOptions = &TransactionOptions{
+// TxReadOptions Transaction options for DB.WriteSerializableTransaction
+var TxReadOptions = &TransactionOptions{
 	AccessMode:     ReadWrite,
 	DeferrableMode: Deferrable,     // deffer constraint checks
 	IsoLevel:       RepeatableRead, // removes non-repeatable reads
@@ -110,22 +102,3 @@ var txReadOptions = &TransactionOptions{
 type ExistsValue struct {
 	Exists bool
 }
-
-// postgres error codes
-const duplicateKeyPgError = "23505"     // duplicate key constraint violation error (record already exists on insert/update)
-const connectionExceptionPgClass = "08" // Class 08 - Connection Exception
-
-//// IsDuplicateKeyError checks the given error to see if it is a Postgres based error related to a duplicate key
-//// violation
-//func IsDuplicateKeyError(err error) bool {
-//	switch err.(type) {
-//	case *pgconn.PgError:
-//		if err.(*pgconn.PgError).Code == duplicateKeyPgError {
-//			return true
-//		}
-//		return false
-//
-//	default:
-//		return false
-//	}
-//}

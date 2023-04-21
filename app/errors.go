@@ -88,3 +88,13 @@ func BuildAlreadyExistsError() *ErrorBuilder {
 func NewAlreadyExistsError(format string, args ...any) Error {
 	return BuildAlreadyExistsError().Msgf(format, args...)
 }
+
+// IOErrorCode relates to an error while trying to access a resource like a file
+const IOErrorCode ErrorCode = 9
+
+func BuildIOError() *ErrorBuilder {
+	return NewErrorBuilder(IOErrorCode, "io")
+}
+func NewIOError(format string, args ...any) Error {
+	return BuildIOError().Msgf(format, args...)
+}

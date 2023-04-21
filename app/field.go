@@ -25,7 +25,7 @@ func (s FieldSpecifier) String() string {
 	case CommandLine:
 		return "command-line"
 	case File:
-		return "config-file"
+		return "registry-file"
 	default:
 		return ""
 	}

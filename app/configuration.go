@@ -67,7 +67,7 @@ func NewConfiguration(path string) (*Configuration, Error) {
 		}
 	}
 
-	// set the profile level config
+	// set the profile level registry
 	cfg := &Configuration{
 		base:      baseCfg,
 		overrides: profileCfg,
@@ -75,46 +75,6 @@ func NewConfiguration(path string) (*Configuration, Error) {
 		values:    make(map[string]*ValueMetadata)}
 
 	return cfg, nil
-}
-
-// BuildIntField Builds a new Integer type FieldBuilder
-func (c *Configuration) BuildIntField(name string) *FieldBuilder[int] {
-	return &FieldBuilder[int]{
-		name:      name,
-		config:    c,
-		valueType: Int}
-}
-
-// BuildUintField Builds a new uint type FieldBuilder
-func (c *Configuration) BuildUintField(name string) *FieldBuilder[uint] {
-	return &FieldBuilder[uint]{
-		name:      name,
-		config:    c,
-		valueType: Uint}
-}
-
-// BuildFloatField Builds a new float64 type FieldBuilder
-func (c *Configuration) BuildFloatField(name string) *FieldBuilder[float64] {
-	return &FieldBuilder[float64]{
-		name:      name,
-		config:    c,
-		valueType: Float}
-}
-
-// BuildBooleanField Builds a new bool type FieldBuilder
-func (c *Configuration) BuildBooleanField(name string) *FieldBuilder[bool] {
-	return &FieldBuilder[bool]{
-		name:      name,
-		config:    c,
-		valueType: Bool}
-}
-
-// BuildStringField Builds a new string type FieldBuilder
-func (c *Configuration) BuildStringField(name string) *FieldBuilder[string] {
-	return &FieldBuilder[string]{
-		name:      name,
-		config:    c,
-		valueType: String}
 }
 
 func (c *Configuration) GetIntValue(fieldName string) (*int, Error) {
@@ -181,11 +141,12 @@ func (c *Configuration) getValue(fieldName string, expectedType ValueType) (any,
 	return md.Value, nil
 }
 
-// LoadFields loads the values of the registered fields
+// LoadFields loads the values from the registered fields into the configuration
 func (c *Configuration) LoadFields(cliArgs []string) Error {
 
+	// if no fields exist then do nothing
 	if len(c.fields) == 0 {
-		logger.Debug().Msg("No configuration fields were registered")
+		logger.Debug().Msg("No fields were registered")
 		return nil
 	}
 
@@ -290,6 +251,14 @@ func (c *Configuration) getIniValue(field *Field) (*string, Error) {
 	return pv, nil
 }
 
+func (c *Configuration) fieldsByArgName() map[string]*Field {
+	fba := make(map[string]*Field)
+	for _, f := range c.fields {
+		fba[f.ArgName] = f
+	}
+	return fba
+}
+
 func getValueFromIni(file *ini.File, field *Field) (*string, Error) {
 
 	if file.HasSection(field.ConfigSectionName) {
@@ -315,14 +284,6 @@ func getValueFromIni(file *ini.File, field *Field) (*string, Error) {
 		}
 	}
 	return nil, nil
-}
-
-func (c *Configuration) fieldsByArgName() map[string]*Field {
-	r := make(map[string]*Field)
-	for _, f := range c.fields {
-		r[f.ArgName] = f
-	}
-	return r
 }
 
 func getEnvironmentConfigPath(basePath string) string {
