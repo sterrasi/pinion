@@ -213,7 +213,7 @@ func assertMetadata(t *testing.T, cfg *Configuration, f *Field, expectedVal any,
 }
 
 func createConfiguration(t *testing.T) *Configuration {
-	cfg, err := NewConfiguration("./test/application.ini")
+	cfg, err := NewConfiguration("./testdata/application.ini")
 	if err != nil {
 		t.Fatalf("Error initializing configuration: %s", err.Error())
 	}
