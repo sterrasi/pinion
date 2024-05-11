@@ -16,11 +16,7 @@ func Normalize(value string) string {
 		return ""
 	}
 	nml := strings.ToLower(value)
-	nml = strings.TrimSpace(nml)
-	if nml == "" {
-		return ""
-	}
-	return nml
+	return strings.TrimSpace(nml)
 }
 
 // GetMapValues returns a slice of the specified maps values

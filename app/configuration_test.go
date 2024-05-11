@@ -154,7 +154,7 @@ func TestCliArgOverride(t *testing.T) {
 	assertMetadata(t, cfg, port, 6000, CommandLine)
 }
 
-func assertMetadata(t *testing.T, cfg *Configuration, f *Field, expectedVal any, specifier FieldSpecifier) {
+func assertMetadata(t *testing.T, cfg *Configuration, f *Field, expectedVal any, specifier FieldSource) {
 	md := cfg.GetValueMetadata(f.Name)
 	assert.Equal(t, md.Field, f)
 
@@ -169,7 +169,7 @@ func assertMetadata(t *testing.T, cfg *Configuration, f *Field, expectedVal any,
 		assert.Equal(t, md.Value, expectedVal)
 	}
 
-	assert.Equal(t, md.Specifier, specifier)
+	assert.Equal(t, md.Source, specifier)
 
 	switch f.Type {
 	case Int:

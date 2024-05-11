@@ -5,18 +5,18 @@ import (
 	"strings"
 )
 
-// FieldSpecifier is the enumerated source type that was responsible for specifying the Field's value
-type FieldSpecifier uint8
+// FieldSource is the enumerated source type that was responsible for specifying the Field's value
+type FieldSource uint8
 
 const (
-	None FieldSpecifier = iota
+	None FieldSource = iota
 	EnvironmentVar
 	CommandLine
 	File
 )
 
 // String Stringer interface
-func (s FieldSpecifier) String() string {
+func (s FieldSource) String() string {
 	switch s {
 	case None:
 		return "none"
@@ -94,12 +94,12 @@ type Field struct {
 
 // ValueMetadata contains the resolved value of a Field as well as some extraction metadata
 type ValueMetadata struct {
-	Value     any
-	Specifier FieldSpecifier
-	Field     *Field
+	Value  any
+	Source FieldSource
+	Field  *Field
 }
 
-func newValue(field *Field, raw string, specifier FieldSpecifier) (*ValueMetadata, Error) {
+func newValue(field *Field, raw string, source FieldSource) (*ValueMetadata, Error) {
 
 	var formatted any
 	var err error = nil
@@ -120,15 +120,15 @@ func newValue(field *Field, raw string, specifier FieldSpecifier) (*ValueMetadat
 		formatted, err = strconv.ParseFloat(raw, 64)
 
 	default:
-		return nil, NewInternalError("Unknown field type specified '%T'", field.Type)
+		return nil, NewInternalError("Unknown field source specified '%T'", field.Type)
 	}
 	if err != nil {
 		return nil, BuildInternalError().Cause(err).
 			Str("rawValue", raw).
-			Str("specifier", specifier.String()).
+			Str("source", source.String()).
 			Msg("error formatting configuration field")
 
 	}
 
-	return &ValueMetadata{Value: formatted, Specifier: specifier, Field: field}, nil
+	return &ValueMetadata{Value: formatted, Source: source, Field: field}, nil
 }

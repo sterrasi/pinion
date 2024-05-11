@@ -32,7 +32,7 @@ func CreateWithBuilder(configPath string, name string, builderFn ConfigurationBu
 	}
 
 	// fields
-	// to turn on unstructured logging for development profile
+	// to use unstructured logging for development profile
 	registry.CreateBooleanField("unstructuredLogger").
 		ArgName("ul").
 		EnvVar("UNSTRUCTURED_LOGGER").
@@ -52,7 +52,7 @@ func CreateWithBuilder(configPath string, name string, builderFn ConfigurationBu
 
 	// The active Profile to start the application under
 	registry.CreateStringField("activeProfile").
-		ArgName("pr").
+		ArgName("p").
 		EnvVar("ACTIVE_PROFILE").
 		ConfigName("Logging", "Level").
 		ShortDesc("Logging Level").
@@ -123,7 +123,7 @@ func configureRootLogger(cfg *Configuration, profile Profile) Error {
 	// determine if an unstructured log should be used
 	unstructuredLogMd := cfg.GetValueMetadata("unstructuredLogger")
 	useUnstructuredLog := unstructuredLogMd.Value.(bool)
-	if unstructuredLogMd.Specifier == None && profile != Production {
+	if unstructuredLogMd.Source == None && profile != Production {
 		useUnstructuredLog = true
 	}
 
